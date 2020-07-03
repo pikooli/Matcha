@@ -1,5 +1,5 @@
-<p align="center"><strong>Matcha</strong></p>
-<p>Matcha is the dating website of the school 42.<br/>
+<p align="center"><strong>Matcha</strong></p><br/>
+<p>Matcha is the dating website of the school 42.<br/><br/>
   We did it with react for the front and nodejs with express for the back<br/>
   The whole project have to be secure again SQL injection and XSS injections.<br/>
   It should have the following system: <br/>
@@ -8,7 +8,7 @@
   - See the profile of a user<br/>
   - Block a user<br/>
   - Report a user<br/>
-  - Have a system of notification<br/>
+  - Have a system of notification <br/>
 </p>
 <img src="loginPage.png" width="400" heigth="500"/>
 <img src="searchPage.png" width="400" heigth="500"/>
