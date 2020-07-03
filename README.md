@@ -10,7 +10,7 @@
   - Block a user<br/>
   - Report a user<br/>
   - Notification for specific action<br/><br/>
-  To launch this app you will need to use docker with docker-compose. 
+  To launch this app you will need to use docker with docker-compose. <br/>
   If everything is installed, you can just do a "sh start.sh" or follow the setup guide
 </p>
 <img src="loginPage.png" width="400" heigth="500"/>
