@@ -1,4 +1,4 @@
-
+<p align="center">Matcha</p>
 <img src="loginPage.png" width="400" heigth="500"/>
 <img src="searchPage.png" width="400" heigth="500"/>
 <img src="Profile.png" width="400" heigth="500"/>
