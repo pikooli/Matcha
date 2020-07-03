@@ -1,7 +1,7 @@
 
-<img src="loginPage.png" width="40" heigth="50"/>
-<img src="searchPage.png" width="40" heigth="50"/>
-<img src="Profile.png" width="40" heigth="50"/>
+<img src="loginPage.png" width="400" heigth="500"/>
+<img src="searchPage.png" width="400" heigth="500"/>
+<img src="Profile.png" width="400" heigth="500"/>
 
 ## SETUP
 - `$> docker-compose -f docker-compose.build.yaml up`
