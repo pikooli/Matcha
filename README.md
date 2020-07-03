@@ -6,9 +6,10 @@
   - Like a user<br/>
   - Message a user<br/>
   - See the profile of a user<br/>
+  - Edit the profile<br/>
   - Block a user<br/>
   - Report a user<br/>
-  - Have a system of notification <br/>
+  - Notification for specific action<br/>
 </p>
 <img src="loginPage.png" width="400" heigth="500"/>
 <img src="searchPage.png" width="400" heigth="500"/>
