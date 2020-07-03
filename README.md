@@ -1,3 +1,6 @@
+
+<img src="loginPage.png" width="40" heigth="50"/>
+<img src="searchPage.png" width="40" heigth="50"/>
 <img src="Profile.png" width="40" heigth="50"/>
 
 ## SETUP
