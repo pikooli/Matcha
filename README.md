@@ -9,7 +9,8 @@
   - Edit the profile<br/>
   - Block a user<br/>
   - Report a user<br/>
-  - Notification for specific action<br/>
+  - Notification for specific action<br/><br/>
+  To launch this app you will need to use docker with docker-compose
 </p>
 <img src="loginPage.png" width="400" heigth="500"/>
 <img src="searchPage.png" width="400" heigth="500"/>
