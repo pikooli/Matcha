@@ -1,5 +1,5 @@
 <p align="center"><strong>Matcha</strong></p><br/>
-<p align="center"><strong>*******IN PRODUCTION, NOT FINISH *******<strong></p><br/>
+<p align="center"><strong>*******IN PRODUCTION, NOT FINISH *******</strong></p><br/>
 
 <p>Matcha is the dating website of the school 42.<br/><br/>
   We did it with react for the front and nodejs with express for the back<br/>
