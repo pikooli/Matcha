@@ -3,6 +3,9 @@ import { Link, withRouter } from "react-router-dom";
 
 import './Authentification.css'
 
+import Cookies from 'universal-cookie';
+const cookies = new Cookies();
+
 class Authentification extends Component {
 
 	constructor(props) {
@@ -60,6 +63,15 @@ class Authentification extends Component {
 	componentDidMount() {
 		if (this.props.readPage() !== 'Authentification')
 			this.props.setPage('Authentification');
+		if (cookies.set('my_id') !== undefined)
+			this.props.auth_disconnect();
+		cookies.set('my_id', undefined);
+
+		const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        };
+        fetch('/disconnect', requestOptions)
 	}
 
 	handleLoginSuccess(url) {
@@ -68,7 +80,7 @@ class Authentification extends Component {
 
 	handleCreate(event) {
 		event.preventDefault();
-		
+
 		const _this = this;
 		const formData = new FormData(event.target);
 
@@ -114,7 +126,7 @@ class Authentification extends Component {
 
 	handleLogin(event) {
 		event.preventDefault();
-		
+
 		const _this = this;
 		const formData = new FormData(event.target);
 		let login = { user: {} };
@@ -129,11 +141,9 @@ class Authentification extends Component {
 			body: JSON.stringify(login)
 		};
 
-		console.log('logggin')
 		fetch('/users/login', requestOptions)
 			.then(response => response.json())
 			.then(data => {
-				console.log(data)
 				if (data._status === -1) {
 					let invalid_input_login = Object.assign(_this.state.invalid_input_login)
 					invalid_input_login.all_input.status = 'on';
@@ -141,6 +151,7 @@ class Authentification extends Component {
 					_this.setState({ invalid_input_login })
 				} else {
 					_this.handleLoginSuccess('/search')
+					cookies.set('my_id', data._data.id);
 				}
 			});
 	}

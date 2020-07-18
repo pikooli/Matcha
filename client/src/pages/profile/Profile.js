@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import React, { Component, Fragment } from 'react'
+import { withRouter } from 'react-router-dom';
 
 import './Profile.css'
 
@@ -6,6 +7,9 @@ import Images from './components/Images'
 import ProfileListInfo from './components/ProfileListInfo'
 import Bio from './components/Bio'
 import Tags from './components/Tags'
+
+import Cookies from 'universal-cookie';
+const cookies = new Cookies();
 
 class Profile extends Component {
 	state = {
@@ -16,88 +20,128 @@ class Profile extends Component {
 	}
 
 	componentDidMount() {
+		const _this = this;
+
 		if (this.props.readPage() !== 'Profile')
 			this.props.setPage('Profile');
 
 		const current_user = window.location.pathname.split('/')[2];
-		// const body = { _data: { username: current_user } }
-
 		const requestOptions = {
 			method: 'GET',
-			// body
 		};
 		fetch('/account/' + current_user, requestOptions)
 			.then(response => response.json())
 			.then(data => {
-				console.log(data)
-				this.setState({ data: data._data })
+				if (data._status === -1) {
+					_this.props.history.push('/authentification');
+				} else {
 
-				const relation = data._data.relation
-				if (!relation) {
-					this.setState({ like_button: 'like', chat_button: false, block_button: 'block' })
-				} else if (relation === 'matched') {
-					this.setState({ like_button: 'unlike', chat_button: true, block_button: 'block' })
-				} else if (relation === 'liked') {
-					this.setState({ like_button: 'unlike', chat_button: false, block_button: 'block' })
-				} else if (relation === 'blocked') {
-					this.setState({ like_button: 'like', chat_button: false, block_button: 'unblock' })
+					this.setState({ data: data._data })
+					const relation = data._data.relation
+					if (!relation) {
+						this.setState({ like_button: 'like', chat_button: false, block_button: 'block' })
+					} else if (relation === 'matched') {
+						this.setState({ like_button: 'unlike', chat_button: true, block_button: 'block' })
+					} else if (relation === 'liked') {
+						this.setState({ like_button: 'unlike', chat_button: false, block_button: 'block' })
+					} else if (relation === 'blocked') {
+						this.setState({ like_button: 'like', chat_button: false, block_button: 'unblock' })
+					}
 				}
 			});
 	}
 
 	handleLikeButton() {
-		const body = JSON.stringify({user: { username: this.state.data.username }});
 		const like_button = this.state.like_button;
+		const body = JSON.stringify({ user: { username: this.state.data.username } });
+		const headers = { 'Content-Type': 'application/json' }
 
 		if (like_button === 'like') {
+			this.setState({ like_button: 'unlike' })
 			const requestOptions = {
 				method: 'POST',
+				headers,
 				body
 			};
-			console.log(requestOptions)
 			fetch('/liked', requestOptions)
 				.then(response => response.json())
 				.then(data => {
-					console.log(data)
+					if (data._status === -1) {
+						alert(data._data)
+						this.setState({ like_button: 'like' })
+					}
 				});
 		} else if (like_button === 'unlike') {
+			this.setState({ like_button: 'like' })
 			const requestOptions = {
 				method: 'PUT',
+				headers,
 				body
 			};
 			fetch('/liked', requestOptions)
 				.then(response => response.json())
 				.then(data => {
-					console.log(data)
+					if (data._status === -1) {
+						alert(data._data)
+						this.setState({ like_button: 'unlike' })
+					}
 				});
 		}
 	}
 
 	handleBlockButton() {
-		const body = JSON.stringify({user: { username: this.state.data.username }});
 		const block_button = this.state.block_button;
+		const body = JSON.stringify({ user: { username: this.state.data.username } });
+		const headers = { 'Content-Type': 'application/json' }
 
 		if (block_button === 'block') {
+			this.setState({ block_button: 'unblock' })
 			const requestOptions = {
 				method: 'POST',
+				headers,
 				body
 			};
-			console.log(requestOptions)
 			fetch('/blocked', requestOptions)
-				.then(response => response.json())
-				.then(data => {
-					console.log(data)
-				});
 		} else if (block_button === 'unblock') {
+			this.setState({ block_button: 'block' })
 			const requestOptions = {
 				method: 'PUT',
+				headers,
 				body
 			};
 			fetch('/blocked', requestOptions)
-				.then(response => response.json())
-				.then(data => {
-					console.log(data)
-				});
+		}
+	}
+
+	handleChatButton() {
+		const data = this.state.data
+		if (data) {
+			this.props.history.push('/chat/' + data.username);
+		}
+	}
+
+	handleReportButton() {
+		const body = JSON.stringify({ user: { username: this.state.data.username } });
+		const headers = { 'Content-Type': 'application/json' }
+
+		const requestOptions = {
+			method: 'POST',
+			headers,
+			body
+		};
+		fetch('/fake', requestOptions)
+	}
+
+	inputsGenerator() {
+		if (this.state.data && this.state.data.id !== cookies.get('my_id')) {
+			return (
+				<Fragment>
+					<input className='form-input' onClick={() => (this.handleLikeButton())} type='submit' value={this.state.like_button} disabled={this.state.like_button === 'loading...' || this.state.block_button === 'unblock'} />
+					<input className='form-input' onClick={() => (this.handleBlockButton())} type='submit' value={this.state.block_button} />
+					<input className='form-input' onClick={() => (this.handleChatButton())} type='submit' value='chat' disabled={!this.state.chat_button} />
+					<input className='form-input' onClick={() => (this.handleReportButton())} type='submit' value='report' />
+				</Fragment>
+			)
 		}
 	}
 
@@ -112,13 +156,11 @@ class Profile extends Component {
 					<ProfileListInfo data={data} />
 					<Bio data={data} />
 					<Tags data={data} />
-					<input className='form-input' onClick={() => (this.handleLikeButton('/profile'))} type='submit' value={this.state.like_button} disabled={this.state.like_button === 'loading...' || this.state.block_button === 'unblock'} />
-					<input className='form-input' onClick={() => (this.handleLikeButton('/profile'))} type='submit' value={this.state.block_button} />
-					<input className='form-input' onClick={() => (this.handleLikeButton('/profile'))} type='submit' value='chat' disabled={!this.state.chat_button} />
+					{this.inputsGenerator()}
 				</div>
 			</div>
 		);
 	}
 }
 
-export default Profile;
+export default withRouter(Profile);

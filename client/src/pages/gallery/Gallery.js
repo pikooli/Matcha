@@ -24,7 +24,6 @@ class Gallery extends Component {
 			this.props.setPage('Gallery');
 
 		const current_user = window.location.pathname.split('/')[2];
-		console.log(current_user)
 
 		const requestOptions = {
 			method: 'GET',
@@ -33,7 +32,6 @@ class Gallery extends Component {
 		fetch('/account/' + current_user, requestOptions)
 			.then(response => response.json())
 			.then(data => {
-				console.log(data)
 				this.setState({ data: data._data })
 			});
 	}
@@ -77,7 +75,7 @@ class Gallery extends Component {
 		return (
 			<div className='intern-page'>
 				<h2>gallery</h2>
-				<h3>{this.state.selected}/{this.picture_nbr() != -1 ? this.picture_nbr() : 'loading...'}</h3>
+				<h3>{this.state.selected}/{this.picture_nbr() !== -1 ? this.picture_nbr() : 'loading...'}</h3>
 				<div className='gallery-img-container' onClick={this.handleNext}>
 					{url_img ? <img className='gallery-img' src={url_img} alt='link to account page' /> : 'loading'}
 				</div>

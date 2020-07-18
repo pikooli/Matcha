@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import './App.css';
 
+
 // import pages
 import Account from './pages/account/Account'
 import Authentification from './pages/authentification/Authentification'
@@ -16,7 +17,6 @@ import ForgotPasswordSend from './pages/forgot_password_send/ForgotPasswordSend'
 import ForgotUsername from './pages/forgot_username/ForgotUsername'
 import ForgotUsernameSend from './pages/forgot_username_send/ForgotUsernameSend'
 import Gallery from './pages/gallery/Gallery'
-import Home from './pages/home/Home'
 import Notification from './pages/notification/Notification'
 import People from './pages/people/People'
 import Profile from './pages/profile/Profile'
@@ -32,9 +32,18 @@ import NoMatch from './pages/noMatch/NoMatch'
 import Header from './shared/components/Header'
 import Footer from './shared/components/Footer'
 
+
 class App extends Component {
-	state = {
-		page: 'tyty'
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			page: 'tyty',
+			notification: false
+		}
+		this.readPage = this.readPage.bind(this);
+		this.reasetPagedPage = this.setPage.bind(this);
+		this.componentDidMount = this.componentDidMount.bind(this);
 	}
 
 	readPage = () => {
@@ -42,7 +51,7 @@ class App extends Component {
 	}
 
 	setPage = page => {
-		this.setState({page})
+		this.setState({ page })
 	}
 
 	componentDidMount() {
@@ -53,30 +62,31 @@ class App extends Component {
 		return (
 			<Router>
 				<div className="App">
-					<Header readPage={this.readPage} />
+					<Header readPage={this.readPage} notification={this.state.notification}/>
 					<div className="page-container">
 						<div className="page">
 							<Switch>
-								<Route exact path='/account'><Account readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/authentification'><Authentification readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/chat'><Chat readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/forgotPassword'><ForgotPassword readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/forgotPasswordSend'><ForgotPasswordSend readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/forgotUsername'><ForgotUsername readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/forgotUsernameSend'><ForgotUsernameSend readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/profile/:username/gallery'><Gallery readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/'><Home readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/notification'><Notification readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/people'><People readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/profile/:username'><Profile readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/resetPassword'><ResetPassword readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/search'><Search readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/settings'><Settings readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/updateProfile'><UpdateProfile readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route exact path='/visits'><Visits readPage={this.readPage} setPage={this.setPage}/></Route>
-								<Route path='*'><NoMatch readPage={this.readPage} setPage={this.setPage}/></Route>
+								<Route exact path='/account'><Account readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/authentification'><Authentification readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/chat/:username'><Chat readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/forgotPassword'><ForgotPassword readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/forgotPasswordSend'><ForgotPasswordSend readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/forgotUsername'><ForgotUsername readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/forgotUsernameSend'><ForgotUsernameSend readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/profile/:username/gallery'><Gallery readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/'><Authentification readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/notification'><Notification readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/people'><People readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/profile/:username'><Profile readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/resetPassword'><ResetPassword readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/search'><Search readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/settings'><Settings readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/updateProfile'><UpdateProfile readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route exact path='/visits'><Visits readPage={this.readPage} setPage={this.setPage} /></Route>
+								<Route path='*'><NoMatch readPage={this.readPage} setPage={this.setPage} /></Route>
 							</Switch>
 						</div>
+						{/* {id != undefined ? <button onClick={() => socket.disconnect()}>disconnect</button> : null} */}
 					</div>
 					<Footer readPage={this.readPage} />
 				</div>

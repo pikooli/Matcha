@@ -22,10 +22,12 @@ var viewersRouter = require("./viewers")
 
 const filter = require("../Model/filter")
 const response = require("../Model/response")
+const utils = require("../Model/utils")
 
 const gps = require("../Model/gps")
 
 router.use((req, res, next) =>{
+    utils.getDate()    
     userDB.updateTime(0)
     next();
 })
@@ -56,7 +58,7 @@ next()}
    ,likedRouter)
 
 router.use("/notifications", (req, res, next) => {
-    req.session.user = 1
+    req.session.user = 0
     req.session.username = "username"
 next()}
  ,notificationsRouter)
@@ -115,10 +117,10 @@ router.use("/gps/:ip", (req, res, next) => {
     req.session.username = "username"
 next()}
 ,(req, res, next) =>{
-    console.log(req.params.ip)
     gps.getCoordonned(req.params.ip)
     .then(data => {
-        response.response(res, data)
+        const rep = "Your coordoned is latitude : " + data.latitude  + " longitude : "+ data.longitude + " You live in " + data.country_name + " in the city : " + data.city
+        response.response(res, rep)
     })
     .catch(err => response.errorCatch(res, "Something went wrong in gps", err));
 });

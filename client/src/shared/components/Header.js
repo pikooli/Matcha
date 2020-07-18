@@ -5,19 +5,66 @@ import { Link } from "react-router-dom";
 import './Header.css'
 
 import Search_icone from '../img/interface_icone/search.svg'
-import Chat_icone from '../img/interface_icone/speech-bubble-18.svg'
 import Heart_icone from '../img/interface_icone/heart-2.svg'
 import Account_icone from '../img/interface_icone/user-1.svg'
 import Notification_icone from '../img/interface_icone/down-arrow.svg'
 
+// import socket
+import socket from "../../Socket"
+
+import Cookies from 'universal-cookie';
+const cookies = new Cookies();
+
 class Header extends Component {
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			notification: false
+		}
+		this.handleNotifs = this.handleNotifs.bind(this);
+		this.handleMessages = this.handleMessages.bind(this);
+		this.componentDidMount = this.componentDidMount.bind(this);
+		this.navConstructor = this.navConstructor.bind(this);
+		this.dontActiveNotification = this.dontActiveNotification.bind(this);
+		this.componentDidUpdate = this.componentDidUpdate.bind(this);
+	}
+
+	handleNotifs() {
+		this.setState({ notification: true })
+	}
+
+	handleMessages() {
+		this.setState({ notification: true })
+	}
+
+	componentDidMount() {
+		const id = cookies.get('my_id');
+		if (id !== undefined) {
+			socket.connect(id, (data) => this.handleNotifs(data), (data) => this.handleMessages(data))
+		}
+	}
+
+	dontActiveNotification() {
+		if (this.state.notification) {
+			if (window.location.pathname.split('/')[1] === 'notification') {
+				this.setState({ notification: false })
+			}
+		}
+	}
+
+	componentDidUpdate() {
+		this.dontActiveNotification()
+	}
+
 	navConstructor() {
-		const page = this.props.readPage();
+        const page = this.props.readPage();
 		if (page !== 'Authentification' &&
 			page !== 'ForgotUsername' &&
 			page !== 'ForgotPassword' &&
 			page !== 'ForgotPasswordSend' &&
-			page !== 'ForgotUsernameSend')
+            page !== 'ForgotUsernameSend' &&
+            page !== 'Home')
 			return (
 				<Fragment>
 					<Link to='/search'>
@@ -26,11 +73,8 @@ class Header extends Component {
 					<Link to='/people'>
 						<img className='header-img scale-hover' src={Heart_icone} alt='link to pretenders page' />
 					</Link>
-					<Link to='/chat'>
-						<img className='header-img scale-hover' src={Chat_icone} alt='link to chat page' />
-					</Link>
 					<Link to='/notification'>
-						<img className='header-img scale-hover' src={Notification_icone} alt='link to notification page' />
+						<img className={'header-img scale-hover ' + (this.state.notification ? 'new_notification' : null)} src={Notification_icone} alt='link to notification page' />
 					</Link>
 					<Link to='/account'>
 						<img className='header-img scale-hover' src={Account_icone} alt='link to account page' />
@@ -41,8 +85,7 @@ class Header extends Component {
 			<Fragment>
 				<img className='header-img blocked-hander-img' src={Search_icone} alt='link to search page' />
 				<img className='header-img blocked-hander-img' src={Heart_icone} alt='link to pretenders page' />
-				<img className='header-img blocked-hander-img' src={Chat_icone} alt='link to chat page' />
-				<img className='header-img blocked-hander-img' src={Notification_icone} alt='link to notification page' />
+				<img className={'header-img blocked-hander-img ' + (this.state.notification ? 'new_notification' : null)} src={Notification_icone} alt='link to notification page' />
 				<img className='header-img blocked-hander-img' src={Account_icone} alt='link to account page' />
 			</Fragment>
 		)
@@ -52,9 +95,7 @@ class Header extends Component {
 		return (
 			<header>
 				<div className='header-top'>
-					<Link to='/'>
-						<h1 className='title'>matcha</h1>
-					</Link>
+					<h1>matcha</h1>
 				</div>
 				<div className='header-bottom'>
 					<nav>

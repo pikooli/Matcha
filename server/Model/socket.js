@@ -1,6 +1,7 @@
 const socketio = require("socket.io")
 const session = require("express-session")
 const userDB  = require("../database/controllers/userDB")
+const utils = require("../Model/utils")
 
 var io
 var socketIo = {}
@@ -21,8 +22,9 @@ socketIo.notification = (id, notification)=>{
 }
 
 socketIo.messages = (id, sender, message)=>{
+    const time = utils.getDate();
     if (io.clients[id])
-        io.clients[id].emit('messages', {sender: sender, message: message, notification: sender + " send you : " + message})
+        io.clients[id].emit('messages', {sender: sender, message: message, created :time,  notification: sender + " send you : " + message})
 }
 
 socketIo.matchNotification = (user1id, user2id) => {
@@ -39,24 +41,28 @@ socketIo.listen= (app) => {
     io.use(function(socket, next){
         socketIo.sessionMiddleware(socket.request, socket.request.res || {}, next)
     })
-// !!!! remove console.log
     io.on("connection", (socket)=>{
-        console.log("someone connected")
-        io.clients[socket.request.session.user] = socket
-        socketIo.notification(socket.request.session.user, "hello, you are connected to server")
-        userDB.updateConnection(socket.request.session.user, true)
+        var id = socket.request._query['id'];
+    
+        if (id === "undefined")
+            return;
+        
+        io.clients[id] = socket
+        userDB.updateConnection(id, true)
+        .catch(err => err)
         
         socket.on("disconnect", ()=>{
-            io.clients[socket.request.session.user] = null;
-            userDB.updateConnection(socket.request.session.user, false)
-            .then(data => console.log("someone disconnected"))
-            .catch(err => console.log(err))
+            var id = socket.request._query['id'];
+            
+            if (id === "undefined")
+                return;
+            io.clients[id] = null;
+            userDB.updateConnection(id, false)
+            .catch(err => err)
         })
         
         socket.on("notifications", (message) => {
-            console.log(message)
-            socketIo.notification(socket.request.session.user, "this have been well received : " + message)
-            socketIo.notification(1, "over")
+            var id = socket.request._query['id'];
         })
     })
     return io;

@@ -5,6 +5,8 @@ const response = require("../Model/response")
 const socketIo = require("../Model/socket")
 const ent = require("ent")
 const blockedDB = require("../database/controllers/blocked")
+const matchDB = require("../database/controllers/match")
+const utils = require("../Model/utils")
 
 router.post("/", (req, res, next)=>{
     
@@ -19,28 +21,31 @@ router.post("/", (req, res, next)=>{
 
     userDB.findOneUserByUsername(receiverUsername)    
     .then(data => {
-        
         if (!data)
             return response.errorResponse(res, "No user with this username");
-
         var receiverData = data;
-
-        blockedDB.isBlocked(req.session.user, data.id)
+        matchDB.getById(receiverData.id, req.session.user)
         .then(data => {
-        
-            if (data)
-                return response.errorResponse(res, "You are blocked");
-        
-            messagesDB.create(req.session.user, receiverData.id, req.session.username, message)
-            .then(data => {
-                socketIo.messages(receiverData.id, req.session.username, message)
-                response.response(res, "Message created");
-            })
-            .catch(err => response.errorCatch(res, "Something went wrong in POST message router ", err))
+            if (!data)
+                return response.errorResponse(res, "You are not matched with this personne");
+            blockedDB.isBlocked(req.session.user, receiverData.id)
+                .then(data => {
+            
+                    if (data)
+                        return response.errorResponse(res, "You are blocked");
+            
+                    messagesDB.create(req.session.user, receiverData.id, req.session.username, message)
+                    .then(data => {
+                        socketIo.messages(receiverData.id, req.session.username, message)
+                        response.response(res, "Message created");
+                    })
+                    .catch(err => response.errorCatch(res, "Something went wrong in POST message router 1", err))
+                })
+                .catch(err => response.errorCatch(res, "Something went wrong in POST message router 2", err))
         })
-        .catch(err => response.errorCatch(res, "Something went wrong in POST message router ", err))
+        .catch(err => response.errorCatch(res, "Something went wrong in POST message router 3", err))
     })
-    .catch(err => response.errorCatch(res, "Something went wrong in POST message router ", err))
+    .catch(err => response.errorCatch(res, "Something went wrong in POST message router 4", err))
 })
 
 router.get("/:username",(req, res, next) =>{
@@ -56,8 +61,9 @@ router.get("/:username",(req, res, next) =>{
 
         messagesDB.getAll(req.session.user, data.id)
         .then(data => {
-            if(data)
+            if(data){
                 return response.response(res, data)
+            }
             response.response(res, [])
         })
         .catch(err => response.errorCatch(res, "Something went wrong in GET message router ", err))

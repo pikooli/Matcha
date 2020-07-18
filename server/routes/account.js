@@ -31,42 +31,42 @@ router.get("/:id", (req, res, next) => {
     .then(user => {
         
         if (!user)
-        return response.response(res, "No user with this username");
-
+            return response.errorResponse(res, "No user with this id");
+        
         userDB.findOneUserById(id)
         .then(data => {
             if (!data)
-                return response.response(res, "No user with this username");
+                return response.errorResponse(res, "No user with this id");
 
             userDB.updateFame(data.id, 1);
             socketIO.notification(data.id, req.session.username + " have look at your profile, check back");
-            viewerDB.create(req.session.user, req.session.username, data)
-            data.distance = filter.findDistance(user, data)
-
-            matchDB.getById(user.id, data.id)
-            .then(matched => {
-                if (matched){
-                    data.relation = "matched";
-                    return response.response(res, data)
-                }
+            viewerDB.CheckView(req.session.user, data.id)
+            .then(ret => {
+                if (!ret)
+                    viewerDB.create(req.session.user, req.session.username, data)
+                    .catch(err => err)
+                data.distance = filter.findDistance(user, data)
                 likedDB.findOneLikeById(user.id, data.id)
                 .then(liked => {
-                    if (liked){
+                    if (liked)
                         data.relation = "liked";
-                        return response.response(res, data)
-                    }
-                    blockedDB.get(user.id, data.id)
-                    .then(blocked => {
-                        if (blocked){
-                            data.relation = "blocked";
+                    matchDB.getById(user.id, data.id)
+                    .then(matched => {
+                        if (matched)
+                            data.relation = "matched";
+                        blockedDB.get(user.id, data.id)
+                        .then(blocked => {
+                            if (blocked)
+                                data.relation = "blocked";
                             return response.response(res, data)
-                        }
-                        return response.response(res, data)
+                        })
+                        .catch(err => response.errorCatch(res, "Something went wrong in account, Error blocked setting", err));
                     })
+                    .catch(err => response.errorCatch(res, "Something went wrong in account, Error liked setting", err));
                 })
+                .catch(err => response.errorCatch(res, "Something went wrong in account, Error database", err));
             })
-            .catch(err => response.errorCatch(res, "Something went wrong in account, Error database", err));
-        })
+            })
         .catch(err => response.errorCatch(res, "Something went wrong in account, Error database", err));
     })
     .catch(err => response.errorCatch(res, "Something went wrong in account, Error database", err));
@@ -81,7 +81,7 @@ router.put("/password", (req, res, next) => {
     var user = req.body.user;
 
     var err = check.password(user)
-
+    
     if (err)
         return response.errorResponse(res, err)
 
@@ -101,7 +101,7 @@ router.put("/myprofile", (req, res, next) => {
         return response.errorResponse(res, "You didn't put a body");
 
     var user = req.body.user;
-
+    
     if (user.email)
         userDB.findOneUserByEmail(user.email)
         .then(data => {
@@ -110,7 +110,6 @@ router.put("/myprofile", (req, res, next) => {
                 return updateData(req, res, user)
             })
         .catch(err => {
-            console.log(err)
             err
         })
         .catch(err => response.errorCatch(res, "Something went wrong in account, Error database in finding email", err));
@@ -125,7 +124,7 @@ function updateData(req, res, user){
     var error = check.userProfile(user)
     error = retError(error)
     if(error != "")
-    // if (Object.entries(error).length)
+     if (Object.entries(error).length)
         return response.errorResponse(res, error)
 
     const userid = req.session.user;
@@ -145,7 +144,6 @@ function updateData(req, res, user){
             .catch(err => response.errorCatch(res, "Something went wrongin account, Error database 2", err));
         })
         .catch(err => {
-            console.log(err)
             response.errorCatch(res, "Something went wrong in account, Error database 3", err)});
 }
 

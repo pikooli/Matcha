@@ -16,7 +16,10 @@ router.post("/", (req, res, next) => {
         return response.errorResponse(res, "You didn't put a body");
 
     if (!file.CheckProfilePicture(req.session.user))
-        return response.errorResponse(res, "You don't have a profile picture , update one to start using this feature")      
+        return response.errorResponse(res, "You don't have a profile picture , update one to start using this feature")
+        
+    if (req.session.user === req.body.user.username)
+        return response.errorResponse(res, "you cannot like yourself")      
 
     userDB.findOneUserByUsername(req.body.user.username)
     .then(data => {
@@ -52,8 +55,8 @@ router.post("/", (req, res, next) => {
                                     socketIo.matchNotification(likerData.id, likedData.id)
                             })
                             .catch(err => utils.log(err))
-                            })
-                            .catch(err => response.errorCatch(res, "Something wrong in the liked router 1", err))
+                        })
+                        .catch(err => response.errorCatch(res, "Something wrong in the liked router 1", err))
 
                     response.errorResponse(res, "You already like this personne")
                 })
@@ -77,9 +80,11 @@ router.put("/",(req, res, next) => {
     userDB.findOneUserByUsername(req.body.user.username)
     .then(data => {
         if (!data)
-            return response.errorResponse(res, "Something wrong in delete router 1")
+            return response.errorResponse(res, "No user with this name")
+
         userDB.updateFame(data.id, -1)
-        socket.notification(data.id, "Someone unliked you, check some new account")
+        socket.notification(data.id, "Someone unliked you, check for new love")
+        matchDB.delete(req.session.user, data.id)
         likedDB.delete(req.session.user, data.id)
         .then(data => response.response(res, "Like delected"))
         .catch(err => response.errorCatch(res, "Something wrong in the liked router 2", err))
@@ -96,7 +101,7 @@ router.get("/likers", (req, res, next) =>{
         var array = [];
         for (key in data)
             array[key] = data[key].likerid;
-        filter.getProfile(req.session.user, array, res)
+        filter.getByArrayProfile(req.session.user, array, res)
     })
     .catch(err => response.errorCatch(res, "Something wrong in likers", err))
 })
@@ -110,7 +115,7 @@ router.get("/", (req, res, next) =>{
         var array = [];
         for (key in data)
             array[key] = data[key].likedid;
-        filter.getProfile(req.session.user, array, res)
+        filter.getByArrayProfile(req.session.user, array, res)
     })
     .catch(err => response.errorCatch(res, "Something wrong in liked", err))
 })

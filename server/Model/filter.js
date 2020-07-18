@@ -12,7 +12,7 @@ var userInfo =  "id ,email, username, firstname, name, gender, orientation, "
                 + "viewers, reputation, latitude, longitude, connected, updated, verified"
 
 
-filter.prepareQuery = (tags) => {
+filter.prepareQuery = (tags, gender) => {
 
     var query = `SELECT ${userInfo} FROM users WHERE `
                 + "id != $1 "
@@ -20,13 +20,16 @@ filter.prepareQuery = (tags) => {
                 + "AND reputation >= $4 AND reputation <= $5 "
 
     var i = 6;
-
+    if (gender){
+        query += "AND gender = $6 "
+        i = 7
+    }
     if (Array.isArray(tags))
         tags.forEach((e) => {
             query += `AND $${i++} = ANY (tags) `;
         })
     query += ";"
-
+        
     return query;
 }
 
@@ -34,16 +37,18 @@ filter.prepareQueryProfile = (array) => {
 
     var query = `SELECT ${userInfo} FROM users WHERE `
 
-
     var i = 1;
-
+    
     if (Array.isArray(array))
-        array.forEach((e) => {
+    {       
+        for(var j = 0; j < array.length ; j++)
+        {
             if (i == 1)
-                query += `id = $${i++} `;
-            else
-                query += `AND id = $${i++} `;
-        })
+                  query += `id = $${i++} `;
+             else
+                 query += `OR id = $${i++} `;
+        } 
+    }
     query += ";"
     return query;
 }
@@ -62,7 +67,9 @@ filter.formatEntry = (ageMin , ageMax, repuMin, repuMax, tags) =>{
     return [ageMin, ageMax, repuMin, repuMax, tags];
 }
 
-filter.usersFilter = async (id, ageMin , ageMax, repuMin, repuMax, tags) => {
+filter.usersFilter = async (id, ageMin , ageMax, repuMin, repuMax, gender, tags) => {
+
+    const array = []
 
     if (!ageMin)
         ageMin = 0;
@@ -72,8 +79,16 @@ filter.usersFilter = async (id, ageMin , ageMax, repuMin, repuMax, tags) => {
         repuMin = 0;
     if (!repuMax)
         repuMax = 999;
+    array.push(id);array.push(ageMin);array.push(ageMax);array.push(repuMin);array.push(repuMax)
 
-    return userDB.findFilter(filter.prepareQuery(tags), [id, ageMin, ageMax, repuMin, repuMax, tags])
+    if(gender)
+        array.push(gender)
+
+    if(tags)
+        for(var i = 0; i < tags.length; i++)
+            array.push(tags[i])
+    
+    return userDB.findFilter(filter.prepareQuery(tags, gender), array)
     .then(data => data)
     .catch(err => err);
 }
@@ -93,7 +108,7 @@ filter.filterBlocked = async (user, data) =>{
         }
         for(var i = 0; i < data.length; i++)
         {
-            if (hash[data[i].id])
+            if (data[i].id && hash[data[i].id])
                 data[i] = null;
         }
         return data;
@@ -104,20 +119,19 @@ filter.filterBlocked = async (user, data) =>{
 filter.filterLiked = async (user, data) =>{
     return likedDB.getAllLiked(user.id)
     .then(liked => {
-
         if (!liked)
             return data
-
+        
         var hash = []
 
         for(var i = 0; i < liked.length; i++)
-        {
             hash[liked[i].likedid] = true;
-        }
         for(var i = 0; i < data.length; i++)
         {
-            if (hash[data[i].id])
+            if (data[i] && hash[data[i].id])
+            {
                 data[i] = null;
+            }
         }
         return data;
     })
@@ -151,7 +165,7 @@ filter.filterGps = (data, distanceMax) => {
          return data
 
      for(var i = 0; i < data.length; i++){
-         if (data[i].distance > distanceMax)
+         if (data[i] && (data[i].distance > distanceMax))
             data[i] = null;
      }
      return data;
@@ -159,7 +173,7 @@ filter.filterGps = (data, distanceMax) => {
 
 filter.sameTags = (user1, user2) =>{
 
-    if (!Array.isArray(user1.tags) || !Array.isArray(user2.tags))
+    if (!user2 || !Array.isArray(user1.tags) || !Array.isArray(user2.tags))
         return 0;
 
     var nb = 0;
@@ -173,11 +187,14 @@ filter.sameTags = (user1, user2) =>{
 }
 
 filter.market = (user, data) => {
+
     if (!Array.isArray(data))
         return data;
 
     for(var i = 0; i < data.length; i++)
     {
+        if (!data[i])
+            continue;
         data[i].distance = filter.findDistance(user, data[i]);
         data[i].commonTags = filter.sameTags(user, data[i]);
     }
@@ -185,7 +202,7 @@ filter.market = (user, data) => {
 }
 
 filter.sort = async (user, data) => {
-
+    
     if (!Array.isArray(data))
         return data;
 
@@ -218,13 +235,14 @@ filter.sort = async (user, data) => {
     return filter.filterBlocked(user, data)
     .then(data => {
         return filter.filterLiked(user, data)
-        .then(data => data)
+        .then(data => {
+            return data})
         .catch(err => err);
     })
     .catch(err => err);
 }
 
-filter.getByArrayProfile = async (user, res)=>{
+filter.getProfile = async (user, res)=>{
     filter.usersFilter(user.id)
     .then(data => {
         filter.sort(user, data)
@@ -238,8 +256,9 @@ filter.getByArrayProfile = async (user, res)=>{
     .catch(err => response.errorCatch(res, "Something went wrong in search, Error database 1", err));
 }
 
-filter.getProfile = async (userid, array, res) => {
-    
+filter.getByArrayProfile = async (userid, array, res) => {
+    if (array.length === 0)
+        return response.response(res, array)
     userDB.findOneUserById(userid)
     .then(user => {
         userDB.findFilter(
